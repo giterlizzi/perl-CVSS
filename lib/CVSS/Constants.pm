@@ -5,7 +5,7 @@ use strict;
 use utf8;
 use warnings;
 
-our $VERSION = '0.99';
+our $VERSION = '1.00';
 $VERSION =~ tr/_//d;    ## no critic
 
 

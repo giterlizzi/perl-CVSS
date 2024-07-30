@@ -12,7 +12,7 @@ use Carp       ();
 use base 'CVSS::Base';
 use CVSS::Constants;
 
-our $VERSION = '0.99';
+our $VERSION = '1.00';
 $VERSION =~ tr/_//d;    ## no critic
 
 use constant DEBUG => $ENV{CVSS_DEBUG};
