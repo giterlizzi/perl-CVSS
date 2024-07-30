@@ -7,6 +7,7 @@ use warnings;
 
 use List::Util qw(min);
 use POSIX      qw(floor round);
+use Carp       ();
 
 use base 'CVSS::Base';
 use CVSS::Constants;

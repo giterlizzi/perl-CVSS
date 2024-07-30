@@ -45,6 +45,7 @@ sub from_vector_string {
     my $cvss_class = $CVSS_CLASSES->{$version} or Carp::croak 'Unknown CVSS version';
 
     DEBUG and say STDERR "-- CVSS v$version -- Vector String: $vector_string";
+
     return $cvss_class->new(version => sprintf('%.1f', $version), metrics => \%metrics,
         vector_string => $vector_string);
 

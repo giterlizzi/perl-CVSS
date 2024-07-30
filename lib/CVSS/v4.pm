@@ -5,7 +5,8 @@ use strict;
 use utf8;
 use warnings;
 
-use List::Util qw(min max any);
+use Carp       ();
+use List::Util qw(any max min);
 
 use base 'CVSS::Base';
 use CVSS::Constants;
@@ -201,6 +202,12 @@ sub M {
 sub calculate_score {
 
     my ($self) = @_;
+
+    if (%{$self->metrics}) {
+        for (@{$self->METRIC_GROUPS->{base}}) {
+            Carp::croak sprintf('Missing base metric (%s)', $_) unless ($self->metrics->{$_});
+        }
+    }
 
     # Set NOT_DEFINED
     $self->metrics->{E} //= 'X';

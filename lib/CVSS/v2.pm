@@ -5,6 +5,7 @@ use strict;
 use utf8;
 use warnings;
 
+use Carp       ();
 use List::Util qw(min);
 
 use base 'CVSS::Base';
@@ -56,6 +57,12 @@ sub W { weight(@_) }
 sub calculate_score {
 
     my ($self, $args) = @_;
+
+    if (%{$self->metrics}) {
+        for (@{$self->METRIC_GROUPS->{base}}) {
+            Carp::croak sprintf('Missing base metric (%s)', $_) unless ($self->metrics->{$_});
+        }
+    }
 
     # Set NOT_DEFINED
     $self->metrics->{E}  //= 'ND';

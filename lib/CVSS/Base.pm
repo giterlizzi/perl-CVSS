@@ -5,8 +5,7 @@ use strict;
 use utf8;
 use warnings;
 
-use Carp;
-use POSIX qw(floor round);
+use Carp ();
 
 our $VERSION = '0.99';
 $VERSION =~ tr/_//d;    ## no critic
