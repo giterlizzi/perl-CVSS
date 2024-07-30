@@ -15,11 +15,35 @@ use overload '""' => \&to_string, fallback => 1;
 
 use constant DEBUG => $ENV{CVSS_DEBUG};
 
+sub import {
+
+    my $class = shift;
+
+    my $ATTRIBUTES = $class->ATTRIBUTES;
+
+    for my $method (keys %{$ATTRIBUTES}) {
+
+        no strict 'refs';
+        no warnings 'uninitialized';
+        no warnings 'redefine';
+
+        my $metric = $ATTRIBUTES->{$method};
+
+        # Long method name
+        *{"${class}::${method}"} = sub {
+            @_ > 1 ? $_[0]->_metric_name_to_value($metric, $_[1]) : $_[0]->_metric_value_to_name($metric);
+        };
+
+        # Create metric alias
+        *{"${class}::${metric}"} = sub { $_[0]->M($metric) };
+
+    }
+
+}
+
 sub new {
 
     my ($class, %params) = @_;
-
-    Carp::croak 'Missing CVSS version' unless $params{version};
 
     $params{metrics}       //= {};
     $params{scores}        //= {};
@@ -59,6 +83,7 @@ sub from_vector_string {
 
 }
 
+sub ATTRIBUTES          { {} }
 sub SEVERITY            { {} }
 sub NOT_DEFINED_VALUE   { }
 sub VECTOR_STRING_REGEX {qw{}}
@@ -78,21 +103,18 @@ sub _metric_value_to_name {
     $self->METRIC_NAMES->{$metric}->{values}->{$self->metrics->{$metric}};
 }
 
-sub version       { shift->{version} }
+sub version       { shift->{version}       || Carp::croak 'Missing CVSS version' }
 sub vector_string { $_[0]->{vector_string} || $_[0]->to_vector_string }
 sub metrics       { shift->{metrics} }
 sub scores        { shift->{scores} }
 
-sub base_score    { shift->{base_score} }
+sub base_score    { shift->{scores}->{base} }
 sub base_severity { $_[0]->score_to_severity($_[0]->base_score) }
 
-# Only for CVSS 2.0 and 3.x
-sub temporal_score    { shift->{temporal_score} }
-sub temporal_severity { $_[0]->score_to_severity($_[0]->temporal_score) }
-
-# Only for CVSS 2.0 and 3.x
-sub environmental_score    { shift->{environmental_score} }
-sub environmental_severity { $_[0]->score_to_severity($_[0]->environmental_score) }
+# JSON-style alias
+sub vectorString { shift->vector_string }
+sub baseScore    { shift->base_score }
+sub baseSeverity { shift->base_severity }
 
 sub metric_group_is_set {
 
@@ -103,8 +125,6 @@ sub metric_group_is_set {
     }
 
 }
-
-sub metric_is_not_defined { ($_[0]->metric($_[1]) eq $_[0]->NOT_DEFINED_VALUE) }
 
 sub metric {
     my ($self, $metric) = @_;
@@ -155,11 +175,14 @@ sub to_vector_string {
         push @vectors, sprintf('%s:%s', $metric, $metrics->{$metric});
     }
 
-    foreach my $metric ((
-        @{$self->METRIC_GROUPS->{threat}},        @{$self->METRIC_GROUPS->{temporal}},
-        @{$self->METRIC_GROUPS->{environmental}}, @{$self->METRIC_GROUPS->{supplemental}}
-    ))
-    {
+    my @other_metrics = ();
+
+    push @other_metrics, @{$self->METRIC_GROUPS->{threat}        || []};    # CVSS 4.0
+    push @other_metrics, @{$self->METRIC_GROUPS->{temporal}      || []};    # CVSS 2.0-3.x
+    push @other_metrics, @{$self->METRIC_GROUPS->{environmental} || []};    # CVSS 2.0-3.x-4.0
+    push @other_metrics, @{$self->METRIC_GROUPS->{supplemental}  || []};    # CVSS 4.0
+
+    foreach my $metric (@other_metrics) {
         if (defined $metrics->{$metric} && $metrics->{$metric} ne $self->NOT_DEFINED_VALUE) {
             push @vectors, sprintf('%s:%s', $metric, $metrics->{$metric});
         }
@@ -173,8 +196,9 @@ sub TO_JSON {
 
     my ($self) = @_;
 
-    # Required in CVSS == v2.0: version, vectorString and baseScore
-    # Required in CVSS >= v3.0: version, vectorString, baseScore and baseSeverity
+    # Required JSON fields:
+    #   CVSS == v2.0: version, vectorString and baseScore
+    #   CVSS >= v3.0: version, vectorString, baseScore and baseSeverity
 
     $self->calculate_score unless ($self->base_score);
 
@@ -188,21 +212,23 @@ sub TO_JSON {
         $json->{baseSeverity} = $self->base_severity;
     }
 
-    my $metrics = $self->metrics;
+    my $metrics    = $self->metrics;
+    my %attributes = reverse(%{$self->ATTRIBUTES});
 
     foreach my $metric (@{$self->METRIC_GROUPS->{base}}) {
-        $json->{$self->METRIC_NAMES->{$metric}->{json}}
-            = $self->METRIC_NAMES->{$metric}->{values}->{$metrics->{$metric}};
+        $json->{$attributes{$metric}} = $self->METRIC_NAMES->{$metric}->{values}->{$metrics->{$metric}};
     }
 
-    foreach my $metric ((
-        @{$self->METRIC_GROUPS->{threat}},        @{$self->METRIC_GROUPS->{temporal}},
-        @{$self->METRIC_GROUPS->{environmental}}, @{$self->METRIC_GROUPS->{supplemental}}
-    ))
-    {
+    my @other_metrics = ();
+
+    push @other_metrics, @{$self->METRIC_GROUPS->{threat}        || []};    # CVSS 4.0
+    push @other_metrics, @{$self->METRIC_GROUPS->{temporal}      || []};    # CVSS 2.0-3.x
+    push @other_metrics, @{$self->METRIC_GROUPS->{environmental} || []};    # CVSS 2.0-3.x-4.0
+    push @other_metrics, @{$self->METRIC_GROUPS->{supplemental}  || []};    # CVSS 4.0
+
+    foreach my $metric (@other_metrics) {
         if ($metrics->{$metric} && $metrics->{$metric} ne $self->NOT_DEFINED_VALUE) {
-            $json->{$self->METRIC_NAMES->{$metric}->{json}}
-                = $self->METRIC_NAMES->{$metric}->{values}->{$metrics->{$metric}};
+            $json->{$attributes{$metric}} = $self->METRIC_NAMES->{$metric}->{values}->{$metrics->{$metric}};
         }
     }
 
@@ -230,7 +256,7 @@ sub TO_JSON {
 
     }
 
-    # CVSS 4.0
+    # CVSS 4.0 ???
 
     # environmentalScore
     # environmentalSeverity
@@ -250,13 +276,173 @@ __END__
 
 CVSS::Base - Base class for CVSS
 
+
 =head1 DESCRIPTION
 
-These are base class for internal CVSS use.
+These are base class for L<CVSS::v2>, L<CVSS::v3> and L<CVSS::v4> classes.
+
+=head2 METHODS
+
+=over 
+
+=item $cvss->version
+
+Return the CVSS version.
+
+=item $cvss->vector_string
+
+Return the CVSS vector string.
+
+=item $cvss->metrics
+
+Return the HASH of CVSS metrics.
+
+=item $cvss->scores
+
+Return the HASH of calculated score (base, impact, temporal).
+
+    $scores = $cvss->scores;
+
+    say Dumper($scores);
+
+    # { "base"           => "7.4",
+    #   "exploitability" => "1.6",
+    #   "impact"         => "5.9" }
+
+=item $cvss->base_score
+
+Return the base score (0 - 10).
+
+=item $cvss->base_severity
+
+Return the base severity (LOW, MEDIUM, HIGH or CRITICAL).
+
+=item $cvss->calculate_score
+
+Performs the calculation of the score in accordance with the CVSS specification.
+
+=item score_to_severity ( $score )
+
+Convert the score in severity
+
+=back
+
+=head3 METRICS
+
+=over
+
+=item $cvss->M ( $metric )
+
+Return the metric value (short)
+
+    say $cvss->M('AV'); # A
+
+=item $cvss->metric ( $metric )
+
+Return the metric value (long)
+
+    say $cvss->metric('AV'); # ADJACENT_NETWORK
+
+=item $cvss->metric_group_is_set ( $group )
+
+=back
+
+=head3 DATA REPRESENTATIONS
+
+=over
+
+=item $cvss->to_vector_string
+
+Convert the L<CVSS> object in vector string
+
+    say $cvss->to_vector_string; # CVSS:3.1/AV:A/AC:L/PR:L/UI:R/S:U/C:H/I:H/A:H
+
+    # or
+
+    say $cvss; # CVSS:3.1/AV:A/AC:L/PR:L/UI:R/S:U/C:H/I:H/A:H
+
+=item $cvss->to_xml
+
+Convert the L<CVSS> object in XML in according of CVSS XML Schema Definition.
+
+=over
+
+=item * https://nvd.nist.gov/schema/cvss-v2_0.2.xsd - XSD for CVSS v2.0
+
+=item * https://www.first.org/cvss/cvss-v3.0.xsd - XSD for CVSS v3.0
+
+=item * https://www.first.org/cvss/cvss-v3.1.xsd - XSD for CVSS v3.1
+
+=item * https://www.first.org/cvss/cvss-v4.0.xsd - XSD for CVSS v4.0
+
+=back
+
+    say $cvss->to_xml;
+
+    # <?xml version="1.0" encoding="UTF-8"?>
+    # <cvssv3.1 xmlns="https://www.first.org/cvss/cvss-v3.1.xsd"
+    #   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    #   xsi:schemaLocation="https://www.first.org/cvss/cvss-v3.1.xsd https://www.first.org/cvss/cvss-v3.1.xsd"
+    #   >
+    # 
+    #   <base_metrics>
+    #     <attack-vector>ADJACENT_NETWORK</attack-vector>
+    #     <attack-complexity>LOW</attack-complexity>
+    #     <privileges-required>LOW</privileges-required>
+    #     <user-interaction>REQUIRED</user-interaction>
+    #     <scope>UNCHANGED</scope>
+    #     <confidentiality-impact>HIGH</confidentiality-impact>
+    #     <integrity-impact>HIGH</integrity-impact>
+    #     <availability-impact>HIGH</availability-impact>
+    #     <base-score>7.4</base-score>
+    #     <base-severity>HIGH</base-severity>
+    #   </base_metrics>
+    # 
+    # </cvssv3.1>
+
+=item $cvss->TO_JSON
+
+Helper method for JSON modules (L<JSON>, L<JSON::PP>, L<JSON::XS>, L<Mojo::JSON>, etc).
+
+Convert the L<CVSS> object in JSON format in according of CVSS JSON Schema.
+
+=over
+
+=item * https://www.first.org/cvss/cvss-v2.0.json - JSON Schema for CVSS v2.0.
+
+=item * https://www.first.org/cvss/cvss-v3.0.json - JSON Schema for CVSS v3.0.
+
+=item * https://www.first.org/cvss/cvss-v3.1.json - JSON Schema for CVSS v3.1.
+
+=item * https://www.first.org/cvss/cvss-v4.0.json - JSON Schema for CVSS v4.0.
+
+=back
+
+    use Mojo::JSON qw(encode_json);
+
+    say encode_json($cvss);
+
+    # {
+    #    "attackComplexity" : "LOW",
+    #    "attackVector" : "ADJACENT_NETWORK",
+    #    "availabilityImpact" : "HIGH",
+    #    "baseScore" : 7.4,
+    #    "baseSeverity" : "HIGH",
+    #    "confidentialityImpact" : "HIGH",
+    #    "integrityImpact" : "HIGH",
+    #    "privilegesRequired" : "LOW",
+    #    "scope" : "UNCHANGED",
+    #    "userInteraction" : "REQUIRED",
+    #    "vectorString" : "CVSS:3.1/AV:A/AC:L/PR:L/UI:R/S:U/C:H/I:H/A:H",
+    #    "version" : "3.1"
+    # }
+
+=back
 
 =head1 SEE ALSO
 
-L<CVSS>
+L<CVSS::v2>, L<CVSS::v3>, L<CVSS::v4>
+
 
 =head1 SUPPORT
 

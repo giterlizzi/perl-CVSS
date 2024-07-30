@@ -13,29 +13,11 @@ use CVSS::Constants;
 our $VERSION = '0.99';
 $VERSION =~ tr/_//d;    ## no critic
 
-
 use constant DEBUG => $ENV{CVSS_DEBUG};
 
-my $WEIGHTS    = CVSS::Constants->CVSS2_WEIGHTS;
-my $ATTRIBUTES = CVSS::Constants::CVSS2_ATTRIBUTES;
+my $WEIGHTS = CVSS::Constants->CVSS2_WEIGHTS;
 
-for my $method (keys %{$ATTRIBUTES}) {
-
-    no strict 'refs';
-    no warnings 'uninitialized';
-
-    my $metric = $ATTRIBUTES->{$method};
-
-    # Long method name
-    *{$method} = sub {
-        @_ > 1 ? $_[0]->_metric_name_to_value($metric, $_[1]) : $_[0]->_metric_value_to_name($metric);
-    };
-
-    # Create metric alias
-    *{$metric} = sub { $_[0]->M($metric) };
-
-}
-
+sub ATTRIBUTES          { CVSS::Constants->CVSS2_ATTRIBUTES }
 sub SEVERITY            { CVSS::Constants->CVSS2_SEVERITY }
 sub NOT_DEFINED_VALUE   { CVSS::Constants->CVSS2_NOT_DEFINED_VALUE }
 sub VECTOR_STRING_REGEX { CVSS::Constants->CVSS2_VECTOR_STRING_REGEX }
@@ -43,6 +25,19 @@ sub METRIC_GROUPS       { CVSS::Constants->CVSS2_METRIC_GROUPS }
 sub METRIC_NAMES        { CVSS::Constants->CVSS2_METRIC_NAMES }
 
 sub version {'2.0'}
+
+sub temporal_score    { shift->{scores}->{temporal} }
+sub temporal_severity { $_[0]->score_to_severity($_[0]->temporal_score) }
+
+sub environmental_score    { shift->{scores}->{environmental} }
+sub environmental_severity { $_[0]->score_to_severity($_[0]->environmental_score) }
+
+# JSON-style alias
+sub temporalScore    { shift->temporal_score }
+sub temporalSeverity { shift->temporal_severity }
+
+sub environmentalScore    { shift->environmental_score }
+sub environmentalSeverity { shift->environmental_severity }
 
 sub weight {
 
@@ -93,8 +88,6 @@ sub calculate_score {
     $self->{scores}->{base}           = $base_score;
     $self->{scores}->{exploitability} = sprintf('%.1f', $exploitability);
 
-    $self->{base_score} = $base_score;
-
     if ($self->metric_group_is_set('temporal')) {
 
         # Temporal Equation
@@ -106,7 +99,6 @@ sub calculate_score {
         DEBUG and say STDERR "-- TemporalScore: $temporal_score";
 
         $self->{scores}->{temporal} = $temporal_score;
-        $self->{temporal_score} = $temporal_score;
 
     }
 
@@ -150,9 +142,9 @@ sub calculate_score {
         $self->{scores}->{environmental}   = $environmental_score;
         $self->{scores}->{modified_impact} = sprintf('%.1f', $adj_impact);
 
-        $self->{environmental_score} = $environmental_score;
-
     }
+
+    return 1;
 
 }
 
@@ -165,9 +157,99 @@ __END__
 
 CVSS::v2 - Parse and calculate CVSS v2 scores
 
+=head1 SYNOPSIS
+
+    use CVSS::v2;
+    my $cvss = CVSS::v2->from_vector_string('AV:N/AC:L/Au:N/C:N/I:N/A:C');
+
+    say $cvss->AV; # N
+    say $cvss->accessVector; # NETWORK
+
 
 =head1 DESCRIPTION
 
+
+=head2 METHODS
+
+L<CVSS::v2> inherits all methods from L<CVSS::Base> and implements the following new ones.
+
+=head3 SCORES
+
+=over
+
+=item $cvss->temporal_score
+
+Return the temporal score (0 - 10).
+
+=item $cvss->temporal_severity
+
+Return the temporal severity (LOW, MEDIUM, HIGH or CRITICAL).
+
+=item $cvss->environmental_score
+
+Return the environmental score (0 - 10).
+
+=item $cvss->environmental_severity
+
+Return the environmental severity (LOW, MEDIUM, HIGH or CRITICAL).
+
+=item $cvss-weight ( $metric )
+
+Return the weight of provided metric.
+
+=item $cvss->W ( $metric )
+
+Alias of C<weight>.
+
+=back
+
+=head3 BASE METRICS
+
+=over
+
+=item $cvss->AV | $cvss->accessVector
+
+=item $cvss->AC | $cvss->accessComplexity
+
+=item $cvss->Au | $cvss->authentication
+
+=item $cvss->C | $cvss->confidentialityImpact
+
+=item $cvss->I | $cvss->integrityImpact
+
+=item $cvss->A | $cvss->availabilityImpact
+
+=back
+
+
+=head3 TEMPORAL METRICS
+
+=over
+
+=item $cvss->E | $cvss->exploitability
+
+=item $cvss->RL | $cvss->remediationLevel
+
+=item $cvss->RC | $cvss->reportConfidence
+
+=back
+
+
+=head3 ENVIRONMENTAL METRICS
+
+=over
+
+=item $cvss->CDP | $cvss->collateralDamagePotential
+
+=item $cvss->TD | $cvss->targetDistribution
+
+=item $cvss->CR | $cvss->confidentialityRequirement
+
+=item $cvss->IR | $cvss->integrityRequirement
+
+=item $cvss->AR | $cvss->availabilityRequirement
+
+=back
 
 
 =head1 SEE ALSO

@@ -14,30 +14,11 @@ use CVSS::Constants;
 our $VERSION = '0.99';
 $VERSION =~ tr/_//d;    ## no critic
 
-
 use constant DEBUG => $ENV{CVSS_DEBUG};
 
-my $WEIGHTS    = CVSS::Constants->CVSS3_WEIGHTS;
-my $ATTRIBUTES = CVSS::Constants::CVSS3_ATTRIBUTES;
+my $WEIGHTS = CVSS::Constants->CVSS3_WEIGHTS;
 
-
-for my $method (keys %{$ATTRIBUTES}) {
-
-    no strict 'refs';
-    no warnings 'uninitialized';
-
-    my $metric = $ATTRIBUTES->{$method};
-
-    # Long method name
-    *{$method} = sub {
-        @_ > 1 ? $_[0]->_metric_name_to_value($metric, $_[1]) : $_[0]->_metric_value_to_name($metric);
-    };
-
-    # Create metric alias
-    *{$metric} = sub { $_[0]->M($metric) };
-
-}
-
+sub ATTRIBUTES          { CVSS::Constants->CVSS3_ATTRIBUTES }
 sub SEVERITY            { CVSS::Constants->CVSS3_SEVERITY }
 sub NOT_DEFINED_VALUE   { CVSS::Constants->CVSS3_NOT_DEFINED_VALUE }
 sub VECTOR_STRING_REGEX { CVSS::Constants->CVSS3_VECTOR_STRING_REGEX }
@@ -106,6 +87,20 @@ sub weight {
 }
 
 sub W { weight(@_) }
+
+
+sub temporal_score    { shift->{scores}->{temporal} }
+sub temporal_severity { $_[0]->score_to_severity($_[0]->temporal_score) }
+
+sub environmental_score    { shift->{scores}->{environmental} }
+sub environmental_severity { $_[0]->score_to_severity($_[0]->environmental_score) }
+
+# JSON-style alias
+sub temporalScore    { shift->temporal_score }
+sub temporalSeverity { shift->temporal_severity }
+
+sub environmentalScore    { shift->environmental_score }
+sub environmentalSeverity { shift->environmental_severity }
 
 
 sub calculate_score {
@@ -186,8 +181,6 @@ sub calculate_score {
     $self->{scores}->{exploitability} = round_up($exploitability);
     $self->{scores}->{impact}         = round_up($impact);
 
-    $self->{base_score} = $base_score;
-
     if ($self->metric_group_is_set('temporal')) {
 
         # Temporal Metrics Equations
@@ -199,7 +192,6 @@ sub calculate_score {
         DEBUG and say STDERR "-- TemporalScore: $temporal_score";
 
         $self->{scores}->{temporal} = $temporal_score;
-        $self->{temporal_score} = $temporal_score;
 
     }
 
@@ -293,9 +285,10 @@ sub calculate_score {
         $self->{scores}->{modified_impact} = round_up($modified_impact);
         $self->{scores}->{environmental}   = $environmental_score;
 
-        $self->{environmental_score} = $environmental_score;
 
     }
+
+    return 1;
 
 }
 
@@ -402,12 +395,106 @@ __END__
 
 =head1 NAME
 
-CVSS::v2 - Parse and calculate CVSS v2 scores
+CVSS::v3 - Parse and calculate CVSS v3 scores
 
+=head1 SYNOPSIS
+
+    use CVSS::v3;
+    my $cvss = CVSS::v3->from_vector_string('CVSS:3.1/AV:A/AC:L/PR:L/UI:R/S:U/C:H/I:H/A:H');
+
+    say $cvss->AV; # A
+    say $cvss->attackVector; # ADJACENT_NETWORK
 
 =head1 DESCRIPTION
 
 
+=head2 METHODS
+
+L<CVSS::v3> inherits all methods from L<CVSS::Base> and implements the following new ones.
+
+=head3 SCORES
+
+=over
+
+=item $cvss->temporal_score
+
+Return the temporal score (0 - 10).
+
+=item $cvss->temporal_severity
+
+Return the temporal severity (LOW, MEDIUM, HIGH or CRITICAL).
+
+=item $cvss->environmental_score
+
+Return the environmental score (0 - 10).
+
+=item $cvss->environmental_severity
+
+Return the environmental severity (LOW, MEDIUM, HIGH or CRITICAL).
+
+=back
+
+=head3 BASE METRICS
+
+=over
+
+=item $cvss->AV | $cvss->attackVector
+
+=item $cvss->AC | $cvss->attackComplexity
+
+=item $cvss->PR | $cvss->privilegesRequired
+
+=item $cvss->UI | $cvss->userInteraction
+
+=item $cvss->S | $cvss->scope
+
+=item $cvss->C | $cvss->confidentialityImpact
+
+=item $cvss->I | $cvss->integrityImpact
+
+=item $cvss->A | $cvss->availabilityImpact
+
+=back
+
+=head3 TEMPORAL METRICS
+
+=over
+
+=item $cvss->E | $cvss->exploitCodeMaturity
+
+=item $cvss->RL | $cvss->remediationLevel
+
+=item $cvss->RC | $cvss->reportConfidence
+
+=back
+
+=head3 ENVIROMENTAL METRICS
+
+=over
+
+=item $cvss->CR | $cvss->confidentialityRequirement
+
+=item $cvss->IR | $cvss->integrityRequirement
+
+=item $cvss->AR | $cvss->availabilityRequirement
+
+=item $cvss->MAV | $cvss->modifiedAttackVector
+
+=item $cvss->MAC | $cvss->modifiedAttackComplexity
+
+=item $cvss->MPR | $cvss->modifiedPrivilegesRequired
+
+=item $cvss->MUI | $cvss->modifiedUserInteraction
+
+=item $cvss->MS | $cvss->modifiedScope
+
+=item $cvss->MC | $cvss->modifiedConfidentialityImpact
+
+=item $cvss->MI | $cvss->modifiedIntegrityImpact
+
+=item $cvss->MA | $cvss->modifiedAvailabilityImpact
+
+=back
 
 =head1 SEE ALSO
 

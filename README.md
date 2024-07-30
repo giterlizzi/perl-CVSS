@@ -28,41 +28,56 @@ $cvss = CVSS->new(
 
 # Method 2 - Decode and parse the vector string
 
+use CVSS;
+
 $cvss = CVSS->from_vector_string('CVSS:3.1/AV:A/AC:L/PR:L/UI:R/S:U/C:H/I:H/A:H');
+
+say $cvss->base_score; # 7.4
 
 
 # Method 3 - Builder
 
-use CVSS 
+use CVSS;
 
 $cvss = CVSS->new(version => '3.1');
-$cvss->attack_vector('ADJACENT_NETWORK');
-$cvss->attack_complexity('LOW');
-$cvss->privileges_required('LOW');
-$cvss->user_interaction('REQUIRED');
+$cvss->attackVector('ADJACENT_NETWORK');
+$cvss->attackComplexity('LOW');
+$cvss->privilegesRequired('LOW');
+$cvss->userInteraction('REQUIRED');
 $cvss->scope('UNCHANGED');
-$cvss->confidentiality_impact('HIGH');
-$cvss->integrity_impact('HIGH');
-$cvss->availability_impact('HIGH');
+$cvss->confidentialityImpact('HIGH');
+$cvss->integrityImpact('HIGH');
+$cvss->availabilityImpact('HIGH');
 
 $cvss->calculate_score;
 
+# Common methods
 
 # Convert the CVSS object in "vector string"
 say $cvss; # CVSS:3.1/AV:A/AC:L/PR:L/UI:R/S:U/C:H/I:H/A:H
 
 # Get metric value
 say $cvss->AV; # A
-say $cvss->attack_vector; # ADJACENT_NETWORK
+say $cvss->attackVector; # ADJACENT_NETWORK
 
 # Get the base score
 say $cvss->base_score; # 7.4
 
+# Get all scores
+say Dumper($cvss->scores);
+
+# { "base"           => "7.4",
+#   "exploitability" => "1.6",
+#   "impact"         => "5.9" }
+
 # Get the base severity
 say $cvss->base_severity # HIGH
 
-# Parse the CVSS "vector string"
-$cvss = CVSS->from_vector_string('CVSS:3.1/AV:A/AC:L/PR:L/UI:R/S:U/C:H/I:H/A:H');
+# Convert CVSS in XML in according of CVSS XML Schema Definition
+$xml = $cvss->to_xml;
+
+# Convert CVSS in JSON in according of CVSS JSON Schema
+$json = encode_json($cvss);
 
 
 # exported functions

@@ -13,9 +13,9 @@ use CVSS::Constants;
 our $VERSION = '0.99';
 $VERSION =~ tr/_//d;    ## no critic
 
-
 use constant DEBUG => $ENV{CVSS_DEBUG};
 
+sub ATTRIBUTES          { CVSS::Constants->CVSS4_ATTRIBUTES }
 sub SEVERITY            { CVSS::Constants->CVSS4_SEVERITY }
 sub NOT_DEFINED_VALUE   { CVSS::Constants->CVSS4_NOT_DEFINED_VALUE }
 sub VECTOR_STRING_REGEX { CVSS::Constants->CVSS4_VECTOR_STRING_REGEX }
@@ -25,24 +25,6 @@ sub METRIC_NAMES        { CVSS::Constants->CVSS4_METRIC_NAMES }
 my $MAX_COMPOSED       = CVSS::Constants->CVSS4_MAX_COMPOSED;
 my $CVSS_LOOKUP_GLOBAL = CVSS::Constants->CVSS4_LOOKUP_GLOBAL;
 my $MAX_SEVERITY       = CVSS::Constants->CVSS4_MAX_SEVERITY;
-my $ATTRIBUTES         = CVSS::Constants::CVSS4_ATTRIBUTES;
-
-for my $method (keys %{$ATTRIBUTES}) {
-
-    no strict 'refs';
-    no warnings 'uninitialized';
-
-    my $metric = $ATTRIBUTES->{$method};
-
-    # Long method name
-    *{$method} = sub {
-        @_ > 1 ? $_[0]->_metric_name_to_value($metric, $_[1]) : $_[0]->_metric_value_to_name($metric);
-    };
-
-    # Create metric alias
-    *{$metric} = sub { $_[0]->M($metric) };
-
-}
 
 sub version {'4.0'}
 
@@ -248,7 +230,7 @@ sub calculate_score {
 
     # The following defines the index of each metric's values.
     # It is used when looking for the highest vector part of the
-    #combinations produced by the MacroVector respective highest vectors.
+    # combinations produced by the MacroVector respective highest vectors.
     my $AV_levels = {N => 0.0, A => 0.1, L => 0.2, P => 0.3};
     my $PR_levels = {N => 0.0, L => 0.1, H => 0.2};
     my $UI_levels = {N => 0.0, P => 0.1, A => 0.2};
@@ -544,7 +526,6 @@ DISTANCE: foreach my $max_vector (@max_vectors) {
 
     DEBUG and say STDERR "-- BaseScore: $base_score ($value)";
 
-    $self->{base_score} = $base_score;
     $self->{scores}->{base} = $base_score;
 
     return 1;
@@ -571,8 +552,8 @@ sub to_xml {
     my $metrics                = $self->metrics;
     my $base_score             = $self->base_score;
     my $base_severity          = $self->base_severity;
-    my $environmental_score    = $self->environmental_score    || '';
-    my $environmental_severity = $self->environmental_severity || '';
+    my $environmental_score    = '';
+    my $environmental_severity = '';
 
     my $xml_metrics = <<"XML";
   <base_metrics>
@@ -658,11 +639,134 @@ __END__
 
 =head1 NAME
 
-CVSS::v2 - Parse and calculate CVSS v4 scores
+CVSS::v4 - Parse and calculate CVSS v4 scores
 
 
 =head1 DESCRIPTION
 
+=head2 METHODS
+
+L<CVSS::v4> inherits all methods from L<CVSS::Base> and implements the following new ones.
+
+=over
+
+=item $cvss->macro_vector
+
+Calculate the macro vector.
+
+=item $cvss->exploitability
+
+Return the Exploitability severity.
+
+=item $cvss->complexity
+
+Return the Complexity severity.
+
+=item $cvss->vulnerable_system
+
+Return the Vulnerable System severity.
+
+=item $cvss->subsequent_system
+
+Return the Subsequent System severity.
+
+=item $cvss->exploitation
+
+Return the Exploitation severity.
+
+=item $cvss->security_requirements
+
+Return the Security Requirements severity.
+
+=back
+
+=head3 BASE METRICS
+
+=over
+
+=item $cvss->AV | $cvss->attackVector
+
+=item $cvss->AC | $cvss->attackComplexity
+
+=item $cvss->AT | $cvss->attackRequirements
+
+=item $cvss->PR | $cvss->privilegesRequired
+
+=item $cvss->UI | $cvss->userInteraction
+
+=item $cvss->VC | $cvss->vulnConfidentialityImpact
+
+=item $cvss->VI | $cvss->vulnIntegrityImpact
+
+=item $cvss->VA | $cvss->vulnAvailabilityImpact
+
+=item $cvss->SC | $cvss->subConfidentialityImpact
+
+=item $cvss->SI | $cvss->subIntegrityImpact
+
+=item $cvss->SA | $cvss->subAvailabilityImpact
+
+=back
+
+=head3 THREAT METRICS
+
+=over
+
+=item $cvss->E | $cvss->exploitMaturity
+
+=back
+
+=head3 ENVIRONMENTAL METRICS
+
+=over
+
+=item $cvss->CR | $cvss->confidentialityRequirement
+
+=item $cvss->IR | $cvss->integrityRequirement
+
+=item $cvss->AR | $cvss->availabilityRequirement
+
+=item $cvss->MAV | $cvss->modifiedAttackVector
+
+=item $cvss->MAC | $cvss->modifiedAttackComplexity
+
+=item $cvss->MAT | $cvss->modifiedAttackRequirements
+
+=item $cvss->MPR | $cvss->modifiedPrivilegesRequired
+
+=item $cvss->MUI | $cvss->modifiedUserInteraction
+
+=item $cvss->MVC | $cvss->modifiedVulnConfidentialityImpact
+
+=item $cvss->MVI | $cvss->modifiedVulnIntegrityImpact
+
+=item $cvss->MVA | $cvss->modifiedVulnAvailabilityImpact
+
+=item $cvss->MSC | $cvss->modifiedSubConfidentialityImpact
+
+=item $cvss->MSI | $cvss->modifiedSubIntegrityImpact
+
+=item $cvss->MSA | $cvss->modifiedSubAvailabilityImpact
+
+=back
+
+=head3 SUPPLEMENTAL METRICS
+
+=over
+
+=item $cvss->S | $cvss->Safety
+
+=item $cvss->AU | $cvss->Automatable
+
+=item $cvss->R | $cvss->Recovery
+
+=item $cvss->V | $cvss->valueDensity
+
+=item $cvss->RE | $cvss->vulnerabilityResponseEffort
+
+=item $cvss->U | $cvss->providerUrgency
+
+=back
 
 
 =head1 SEE ALSO

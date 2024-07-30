@@ -51,24 +51,24 @@ use constant CVSS2_WEIGHTS => {
 use constant CVSS2_ATTRIBUTES => {
 
     # Base metrics
-    access_vector          => 'AV',
-    access_complexity      => 'AC',
-    authentication         => 'Au',
-    confidentiality_impact => 'C',
-    integrity_impact       => 'I',
-    availability_impact    => 'A',
+    accessVector          => 'AV',
+    accessComplexity      => 'AC',
+    authentication        => 'Au',
+    confidentialityImpact => 'C',
+    integrityImpact       => 'I',
+    availabilityImpact    => 'A',
 
     # Temporal
-    exploitability    => 'E',
-    remediation_level => 'RL',
-    report_confidence => 'RC',
+    exploitability   => 'E',
+    remediationLevel => 'RL',
+    reportConfidence => 'RC',
 
     # Environmental
-    collateral_damage_potential => 'CDP',
-    target_distribution         => 'TD',
-    confidentiality_requirement => 'CR',
-    integrity_requirement       => 'IR',
-    availability_requirement    => 'AR',
+    collateralDamagePotential  => 'CDP',
+    targetDistribution         => 'TD',
+    confidentialityRequirement => 'CR',
+    integrityRequirement       => 'IR',
+    availabilityRequirement    => 'AR',
 
 };
 
@@ -193,32 +193,32 @@ use constant CVSS3_WEIGHTS => {
 use constant CVSS3_ATTRIBUTES => {
 
     # Base metrics
-    attack_vector          => 'AV',
-    attack_complexity      => 'AC',
-    privileges_required    => 'PR',
-    user_interaction       => 'UI',
-    scope                  => 'S',
-    confidentiality_impact => 'C',
-    integrity_impact       => 'I',
-    availability_impact    => 'A',
+    attackVector          => 'AV',
+    attackComplexity      => 'AC',
+    privilegesRequired    => 'PR',
+    userInteraction       => 'UI',
+    scope                 => 'S',
+    confidentialityImpact => 'C',
+    integrityImpact       => 'I',
+    availabilityImpact    => 'A',
 
     # Temporal metrics
-    exploit_code_maturity => 'E',
-    remediation_level     => 'RL',
-    report_confidence     => 'RC',
+    exploitCodeMaturity => 'E',
+    remediationLevel    => 'RL',
+    reportConfidence    => 'RC',
 
     # Enviromental metrics
-    confidentiality_requirement     => 'CR',
-    integrity_requirement           => 'IR',
-    availability_requirement        => 'AR',
-    modified_attack_vector          => 'MAV',
-    modified_attack_complexity      => 'MAC',
-    modified_privileges_required    => 'MPR',
-    modified_user_interaction       => 'MUI',
-    modified_scope                  => 'MS',
-    modified_confidentiality_impact => 'MC',
-    modified_integrity_impact       => 'MI',
-    modified_availability_impact    => 'MA',
+    confidentialityRequirement    => 'CR',
+    integrityRequirement          => 'IR',
+    availabilityRequirement       => 'AR',
+    modifiedAttackVector          => 'MAV',
+    modifiedAttackComplexity      => 'MAC',
+    modifiedPrivilegesRequired    => 'MPR',
+    modifiedUserInteraction       => 'MUI',
+    modifiedScope                 => 'MS',
+    modifiedConfidentialityImpact => 'MC',
+    modifiedIntegrityImpact       => 'MI',
+    modifiedAvailabilityImpact    => 'MA',
 
 };
 
@@ -612,41 +612,45 @@ use constant CVSS4_METRIC_GROUPS => {
 
 use constant CVSS4_ATTRIBUTES => {
 
-    attack_vector               => 'AV',
-    attack_complexity           => 'AC',
-    attack_requirements         => 'AT',
-    privileges_required         => 'PR',
-    user_interaction            => 'UI',
-    vuln_confidentiality_impact => 'VC',
-    vuln_integrity_impact       => 'VI',
-    vuln_availability_impact    => 'VA',
-    sub_confidentiality_impact  => 'SC',
-    sub_integrity_impact        => 'SI',
-    sub_availability_impact     => 'SA',
+    # Base
+    attackVector              => 'AV',
+    attackComplexity          => 'AC',
+    attackRequirements        => 'AT',
+    privilegesRequired        => 'PR',
+    userInteraction           => 'UI',
+    vulnConfidentialityImpact => 'VC',
+    vulnIntegrityImpact       => 'VI',
+    vulnAvailabilityImpact    => 'VA',
+    subConfidentialityImpact  => 'SC',
+    subIntegrityImpact        => 'SI',
+    subAvailabilityImpact     => 'SA',
 
-    exploit_maturity => 'E',
+    # Threat
+    exploitMaturity => 'E',
 
-    confidentiality_requirement          => 'CR',
-    integrity_requirement                => 'IR',
-    availability_requirement             => 'AR',
-    modified_attack_vector               => 'MAV',
-    modified_attack_complexity           => 'MAC',
-    modified_attack_requirements         => 'MAT',
-    modified_privileges_required         => 'MPR',
-    modified_user_interaction            => 'MUI',
-    modified_vuln_confidentiality_impact => 'MVC',
-    modified_vuln_integrity_impact       => 'MVI',
-    modified_vuln_availability_impact    => 'MVA',
-    modified_sub_confidentiality_impact  => 'MSC',
-    modified_sub_integrity_impact        => 'MSI',
-    modified_sub_availability_impact     => 'MSA',
+    # Environmental
+    confidentialityRequirement        => 'CR',
+    integrityRequirement              => 'IR',
+    availabilityRequirement           => 'AR',
+    modifiedAttackVector              => 'MAV',
+    modifiedAttackComplexity          => 'MAC',
+    modifiedAttackRequirements        => 'MAT',
+    modifiedPrivilegesRequired        => 'MPR',
+    modifiedUserInteraction           => 'MUI',
+    modifiedVulnConfidentialityImpact => 'MVC',
+    modifiedVulnIntegrityImpact       => 'MVI',
+    modifiedVulnAvailabilityImpact    => 'MVA',
+    modifiedSubConfidentialityImpact  => 'MSC',
+    modifiedSubIntegrityImpact        => 'MSI',
+    modifiedSubAvailabilityImpact     => 'MSA',
 
-    safety                        => 'S',
-    automatable                   => 'AU',
-    recovery                      => 'R',
-    value_density                 => 'V',
-    vulnerability_response_effort => 'RE',
-    provider_urgency              => 'U',
+    # Supplemental
+    Safety                      => 'S',
+    Automatable                 => 'AU',
+    Recovery                    => 'R',
+    valueDensity                => 'V',
+    vulnerabilityResponseEffort => 'RE',
+    providerUrgency             => 'U',
 
 };
 
