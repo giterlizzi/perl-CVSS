@@ -9,9 +9,9 @@ use Carp       ();
 use List::Util qw(any max min);
 
 use base 'CVSS::Base';
-use CVSS::Constants;
+use CVSS::Constants ();
 
-our $VERSION = '1.00';
+our $VERSION = '1.10';
 $VERSION =~ tr/_//d;    ## no critic
 
 use constant DEBUG => $ENV{CVSS_DEBUG};

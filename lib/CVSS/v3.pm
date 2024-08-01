@@ -10,9 +10,9 @@ use POSIX      qw(floor round);
 use Carp       ();
 
 use base 'CVSS::Base';
-use CVSS::Constants;
+use CVSS::Constants ();
 
-our $VERSION = '1.00';
+our $VERSION = '1.10';
 $VERSION =~ tr/_//d;    ## no critic
 
 use constant DEBUG => $ENV{CVSS_DEBUG};
@@ -89,21 +89,6 @@ sub weight {
 
 sub W { weight(@_) }
 
-
-sub temporal_score    { shift->{scores}->{temporal} }
-sub temporal_severity { $_[0]->score_to_severity($_[0]->temporal_score) }
-
-sub environmental_score    { shift->{scores}->{environmental} }
-sub environmental_severity { $_[0]->score_to_severity($_[0]->environmental_score) }
-
-# JSON-style alias
-sub temporalScore    { shift->temporal_score }
-sub temporalSeverity { shift->temporal_severity }
-
-sub environmentalScore    { shift->environmental_score }
-sub environmentalSeverity { shift->environmental_severity }
-
-
 sub calculate_score {
 
     my ($self) = @_;
@@ -179,8 +164,8 @@ sub calculate_score {
     DEBUG and say STDERR "-- BaseScore: $base_score";
 
     $self->{scores}->{base}           = $base_score;
-    $self->{scores}->{exploitability} = round_up($exploitability);
-    $self->{scores}->{impact}         = round_up($impact);
+    $self->{scores}->{exploitability} = sprintf('%.1f', $exploitability);
+    $self->{scores}->{impact}         = sprintf('%.1f', $impact);
 
     if ($self->metric_group_is_set('temporal')) {
 
@@ -412,28 +397,6 @@ CVSS::v3 - Parse and calculate CVSS v3 scores
 =head2 METHODS
 
 L<CVSS::v3> inherits all methods from L<CVSS::Base> and implements the following new ones.
-
-=head3 SCORES
-
-=over
-
-=item $cvss->temporal_score
-
-Return the temporal score (0 - 10).
-
-=item $cvss->temporal_severity
-
-Return the temporal severity (LOW, MEDIUM, HIGH or CRITICAL).
-
-=item $cvss->environmental_score
-
-Return the environmental score (0 - 10).
-
-=item $cvss->environmental_severity
-
-Return the environmental severity (LOW, MEDIUM, HIGH or CRITICAL).
-
-=back
 
 =head3 BASE METRICS
 

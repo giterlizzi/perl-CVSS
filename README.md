@@ -183,4 +183,5 @@ Using `App::cpanminus`:
 
 ## Copyright
 
+- Copyright 2007-2024 © FIRST.org - Forum of Incident Response and Security Teams, Inc.
 - Copyright 2023-2024 © Giuseppe Di Terlizzi
