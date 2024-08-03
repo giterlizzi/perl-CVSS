@@ -6,7 +6,7 @@ use utf8;
 use warnings;
 
 use List::Util qw(min);
-use POSIX      qw(floor round);
+use POSIX      ();
 use Carp       ();
 
 use base 'CVSS::Base';
@@ -278,6 +278,11 @@ sub calculate_score {
 
 }
 
+sub round {
+    my ($input) = @_;
+    return ($input < 0) ? POSIX::ceil($input - 0.5) : POSIX::floor($input + 0.5);
+}
+
 sub round_up {
 
     my ($input) = @_;
@@ -288,7 +293,7 @@ sub round_up {
         return $int_input / 100_000;
     }
     else {
-        return (floor($int_input / 10_000) + 1) / 10;
+        return (POSIX::floor($int_input / 10_000) + 1) / 10;
     }
 
 }
@@ -381,7 +386,7 @@ __END__
 
 =head1 NAME
 
-CVSS::v3 - Parse and calculate CVSS v3 scores
+CVSS::v3 - Parse and calculate CVSS v3.x scores
 
 =head1 SYNOPSIS
 

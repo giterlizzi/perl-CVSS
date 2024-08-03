@@ -646,7 +646,7 @@ __END__
 
 =head1 NAME
 
-CVSS::v4 - Parse and calculate CVSS v4 scores
+CVSS::v4 - Parse and calculate CVSS v4.0 scores
 
 
 =head1 DESCRIPTION

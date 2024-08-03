@@ -149,7 +149,7 @@ __END__
 
 =head1 NAME
 
-CVSS::v2 - Parse and calculate CVSS v2 scores
+CVSS::v2 - Parse and calculate CVSS v2.0 scores
 
 =head1 SYNOPSIS
 
