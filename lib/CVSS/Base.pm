@@ -7,7 +7,7 @@ use warnings;
 
 use Carp ();
 
-our $VERSION = '1.11';
+our $VERSION = '1.11_1';
 $VERSION =~ tr/_//d;    ## no critic
 
 use overload '""' => \&to_string, fallback => 1;
@@ -88,6 +88,7 @@ sub NOT_DEFINED_VALUE   { }
 sub VECTOR_STRING_REGEX {qw{}}
 sub METRIC_GROUPS       { {} }
 sub METRIC_NAMES        { {} }
+sub METRIC_VALUES       { {} }
 
 
 sub _metric_name_to_value {

@@ -11,7 +11,7 @@ use List::Util qw(any max min);
 use base 'CVSS::Base';
 use CVSS::Constants ();
 
-our $VERSION = '1.11';
+our $VERSION = '1.11_1';
 $VERSION =~ tr/_//d;    ## no critic
 
 use constant DEBUG => $ENV{CVSS_DEBUG};
@@ -22,6 +22,7 @@ sub NOT_DEFINED_VALUE   { CVSS::Constants->CVSS4_NOT_DEFINED_VALUE }
 sub VECTOR_STRING_REGEX { CVSS::Constants->CVSS4_VECTOR_STRING_REGEX }
 sub METRIC_GROUPS       { CVSS::Constants->CVSS4_METRIC_GROUPS }
 sub METRIC_NAMES        { CVSS::Constants->CVSS4_METRIC_NAMES }
+sub METRIC_VALUES       { CVSS::Constants->CVSS4_METRIC_VALUES }
 
 my $MAX_COMPOSED       = CVSS::Constants->CVSS4_MAX_COMPOSED;
 my $CVSS_LOOKUP_GLOBAL = CVSS::Constants->CVSS4_LOOKUP_GLOBAL;

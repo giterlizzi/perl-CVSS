@@ -5,7 +5,7 @@ use strict;
 use utf8;
 use warnings;
 
-our $VERSION = '1.11';
+our $VERSION = '1.11_1';
 $VERSION =~ tr/_//d;    ## no critic
 
 
@@ -69,6 +69,27 @@ use constant CVSS2_ATTRIBUTES => {
     confidentialityRequirement => 'CR',
     integrityRequirement       => 'IR',
     availabilityRequirement    => 'AR',
+
+};
+
+use constant CVSS2_METRIC_VALUES => {
+
+    AV => [qw(N A L)],
+    AC => [qw(H M L)],
+    Au => [qw(M S N)],
+    C  => [qw(N P C)],
+    I  => [qw(N P C)],
+    A  => [qw(N P C)],
+
+    E  => [qw(U POC F H ND)],
+    RL => [qw(OF TF W U ND)],
+    RC => [qw(UC UR C ND)],
+
+    CDP => [qw(N L LM MH H ND)],
+    TD  => [qw(N L M H ND)],
+    CR  => [qw(L M H ND)],
+    IR  => [qw(L M H ND)],
+    AR  => [qw(L M H ND)],
 
 };
 
@@ -222,16 +243,45 @@ use constant CVSS3_ATTRIBUTES => {
 
 };
 
+use constant CVSS3_METRIC_VALUES => {
+
+    AV => [qw(N A L P)],
+    AC => [qw(L H)],
+    PR => [qw(N L H)],
+    UI => [qw(N R)],
+    S  => [qw(U C)],
+    C  => [qw(N L H)],
+    I  => [qw(N L H)],
+    A  => [qw(N L H)],
+
+    E  => [qw(X U P F H)],
+    RL => [qw(X O T W U)],
+    RC => [qw(X U R C)],
+
+    MAV => [qw(X N A L P)],
+    MAC => [qw(X L H)],
+    MPR => [qw(X N L H)],
+    MUI => [qw(X N R)],
+    MS  => [qw(X U C)],
+    MC  => [qw(X N L H)],
+    MI  => [qw(X N L H)],
+    MA  => [qw(X N L H)],
+    CR  => [qw(X L M H)],
+    IR  => [qw(X L M H)],
+    AR  => [qw(X L M H)],
+
+};
+
 sub CVSS3_METRIC_NAMES {
 
-    my $AV = {N => 'NETWORK',   A => 'ADJACENT_NETWORK', L => 'LOCAL', P => 'PHYSICAL', X => 'NOT_DEFINED'};
-    my $AC = {H => 'HIGH',      L => 'LOW',      X => 'NOT_DEFINED'};
-    my $PR = {N => 'NONE',      L => 'LOW',      H => 'HIGH', X => 'NOT_DEFINED'};
-    my $UI = {N => 'NONE',      R => 'REQUIRED', X => 'NOT_DEFINED'};
-    my $S  = {U => 'UNCHANGED', C => 'CHANGED',  X => 'NOT_DEFINED'};
-    my $C  = {N => 'NONE',      L => 'LOW',      H => 'HIGH', X => 'NOT_DEFINED'};
-    my $I  = {N => 'NONE',      L => 'LOW',      H => 'HIGH', X => 'NOT_DEFINED'};
-    my $A  = {N => 'NONE',      L => 'LOW',      H => 'HIGH', X => 'NOT_DEFINED'};
+    my $AV = {N => 'NETWORK',   A => 'ADJACENT_NETWORK', L => 'LOCAL', P => 'PHYSICAL'};
+    my $AC = {H => 'HIGH',      L => 'LOW'};
+    my $PR = {N => 'NONE',      L => 'LOW', H => 'HIGH'};
+    my $UI = {N => 'NONE',      R => 'REQUIRED'};
+    my $S  = {U => 'UNCHANGED', C => 'CHANGED'};
+    my $C  = {N => 'NONE',      L => 'LOW', H => 'HIGH'};
+    my $I  = {N => 'NONE',      L => 'LOW', H => 'HIGH'};
+    my $A  = {N => 'NONE',      L => 'LOW', H => 'HIGH'};
 
     my $E  = {X => 'NOT_DEFINED', U => 'UNPROVEN',     P => 'PROOF_OF_CONCEPT', F => 'FUNCTIONAL', H => 'HIGH'};
     my $RL = {X => 'NOT_DEFINED', O => 'OFFICIAL_FIX', T => 'TEMPORARY_FIX',    W => 'WORKAROUND', U => 'UNAVAILABLE'};
@@ -248,6 +298,8 @@ sub CVSS3_METRIC_NAMES {
     my $MC  = {N => 'NONE',        L => 'LOW',              H => 'HIGH', X => 'NOT_DEFINED'};
     my $MI  = {N => 'NONE',        L => 'LOW',              H => 'HIGH', X => 'NOT_DEFINED'};
     my $MA  = {N => 'NONE',        L => 'LOW',              H => 'HIGH', X => 'NOT_DEFINED'};
+
+    my @AV = (qw[N A L P]);
 
     return {
         # Base
@@ -651,6 +703,46 @@ use constant CVSS4_ATTRIBUTES => {
     valueDensity                => 'V',
     vulnerabilityResponseEffort => 'RE',
     providerUrgency             => 'U',
+
+};
+
+use constant CVSS4_METRIC_VALUES => {
+
+    AV => [qw(N A L P)],
+    AC => [qw(L H)],
+    AT => [qw(N P)],
+    PR => [qw(N L H)],
+    UI => [qw(N P A)],
+    VC => [qw(H L N)],
+    VI => [qw(H L N)],
+    VA => [qw(H L N)],
+    SC => [qw(H L N)],
+    SI => [qw(H L N)],
+    SA => [qw(H L N)],
+
+    E => [qw(X A P U)],
+
+    CR  => [qw(X H M L)],
+    IR  => [qw(X H M L)],
+    AR  => [qw(X H M L)],
+    MAV => [qw(X N A L P)],
+    MAC => [qw(X L H)],
+    MAT => [qw(X N P)],
+    MPR => [qw(X N L H)],
+    MUI => [qw(X N P A)],
+    MVC => [qw(X H L N)],
+    MVI => [qw(X H L N)],
+    MVA => [qw(X H L N)],
+    MSC => [qw(X H L N)],
+    MSI => [qw(X S H L N)],
+    MSA => [qw(X S H L N)],
+
+    S  => [qw(X N P)],
+    AU => [qw(X N Y)],
+    R  => [qw(X A U I)],
+    V  => [qw(X D C)],
+    RE => [qw(X L M H)],
+    U  => [qw(X Clear Green Amber Red)],
 
 };
 
