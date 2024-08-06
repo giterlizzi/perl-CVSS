@@ -6,12 +6,12 @@ use utf8;
 use warnings;
 
 use Carp       ();
-use List::Util qw(any max min);
+use List::Util qw(max min);
 
 use base 'CVSS::Base';
 use CVSS::Constants ();
 
-our $VERSION = '1.11_1';
+our $VERSION = '1.11_2';
 $VERSION =~ tr/_//d;    ## no critic
 
 use constant DEBUG => $ENV{CVSS_DEBUG};
@@ -419,8 +419,9 @@ DISTANCE: foreach my $max_vector (@max_vectors) {
         );
 
         # if any is less than zero this is not the right max
-
-        next DISTANCE if (any { $_ < 0 } @check);
+        foreach (@check) {
+           next DISTANCE if ($_ < 0);
+        }
 
         # if multiple maxes exist to reach it it is enough the first one
         last;

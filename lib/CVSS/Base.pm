@@ -7,7 +7,7 @@ use warnings;
 
 use Carp ();
 
-our $VERSION = '1.11_1';
+our $VERSION = '1.11_2';
 $VERSION =~ tr/_//d;    ## no critic
 
 use overload '""' => \&to_string, fallback => 1;
