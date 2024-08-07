@@ -258,7 +258,7 @@ sub calculate_score {
     my $IR_levels = {H => 0.0, M => 0.1, L => 0.2};
     my $AR_levels = {H => 0.0, M => 0.1, L => 0.2};
 
-    my $E_levels = {U => 0.2, P => 0.1, A => 0};
+    my $E_levels = {U => 0.2, P => 0.1, A => 0.0};
 
     if (   $self->M('VC') eq 'N'
         && $self->M('VI') eq 'N'
@@ -267,7 +267,7 @@ sub calculate_score {
         && $self->M('SI') eq 'N'
         && $self->M('SA') eq 'N')
     {
-        $self->{base_score} = '0.0';
+        $self->{scores}->{base} = '0.0';
         return 1;
     }
 
@@ -420,7 +420,7 @@ DISTANCE: foreach my $max_vector (@max_vectors) {
 
         # if any is less than zero this is not the right max
         foreach (@check) {
-           next DISTANCE if ($_ < 0);
+            next DISTANCE if ($_ < 0);
         }
 
         # if multiple maxes exist to reach it it is enough the first one
@@ -523,10 +523,16 @@ DISTANCE: foreach my $max_vector (@max_vectors) {
             / $n_existing_lower;
     }
 
+    # /
+
+    DEBUG and say STDERR "-- Value: $value - MeanDistance: $mean_distance";
+
     # 3. The score of the vector is the score of the MacroVector
     #    (i.e. the score of the highest severity vector) minus the mean
     #    distance so computed. This score is rounded to one decimal place.
     $value -= $mean_distance;
+
+    DEBUG and say STDERR "-- Value $value";
 
     $value = max(0.0, $value);
     $value = min(10.0, $value);
