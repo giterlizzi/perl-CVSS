@@ -11,13 +11,13 @@ use List::Util qw(max min);
 use base 'CVSS::Base';
 use CVSS::Constants ();
 
-our $VERSION = '1.11_2';
+our $VERSION = '1.11_3';
 $VERSION =~ tr/_//d;    ## no critic
 
 use constant DEBUG => $ENV{CVSS_DEBUG};
 
 sub ATTRIBUTES          { CVSS::Constants->CVSS4_ATTRIBUTES }
-sub SEVERITY            { CVSS::Constants->CVSS4_SEVERITY }
+sub SCORE_SEVERITY      { CVSS::Constants->CVSS4_SCORE_SEVERITY }
 sub NOT_DEFINED_VALUE   { CVSS::Constants->CVSS4_NOT_DEFINED_VALUE }
 sub VECTOR_STRING_REGEX { CVSS::Constants->CVSS4_VECTOR_STRING_REGEX }
 sub METRIC_GROUPS       { CVSS::Constants->CVSS4_METRIC_GROUPS }

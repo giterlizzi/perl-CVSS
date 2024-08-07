@@ -5,13 +5,13 @@ use strict;
 use utf8;
 use warnings;
 
-our $VERSION = '1.11_2';
+our $VERSION = '1.11_3';
 $VERSION =~ tr/_//d;    ## no critic
 
 
 # CVSS v2.0 constants
 
-use constant CVSS2_SEVERITY => {
+use constant CVSS2_SCORE_SEVERITY => {
     NONE   => {min => 0.0, max => 0.0},
     LOW    => {min => 0.1, max => 3.9},
     MEDIUM => {min => 4.0, max => 6.9},
@@ -142,7 +142,7 @@ sub CVSS2_METRIC_NAMES {
 
 # CVSS v3.x constans
 
-use constant CVSS3_SEVERITY => {
+use constant CVSS3_SCORE_SEVERITY => {
     NONE     => {min => 0.0, max => 0.0},
     LOW      => {min => 0.1, max => 3.9},
     MEDIUM   => {min => 4.0, max => 6.9},
@@ -336,7 +336,7 @@ sub CVSS3_METRIC_NAMES {
 
 # CVSS v4.0 constants
 
-use constant CVSS4_SEVERITY => CVSS3_SEVERITY();
+use constant CVSS4_SCORE_SEVERITY => CVSS3_SCORE_SEVERITY();
 
 use constant CVSS4_NOT_DEFINED_VALUE => 'X';
 
